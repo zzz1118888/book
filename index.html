@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2025 誠品暢銷書單 Top 40</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans p-8">
+
+    <div class="max-w-7xl mx-auto">
+        <h1 class="text-3xl font-bold mb-8 text-center text-gray-900">📚 2025 誠品暢銷書單 Top 40</h1>
+        
+        <div id="book-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <!-- 圖書卡片將在這裡生成 -->
+        </div>
+    </div>
+
+    <!-- 評論彈出視窗 (Modal) -->
+    <div id="comment-modal" class="fixed inset-0 bg-black bg-opacity-60 hidden flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-xl w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl">
+            
+            <!-- Modal Header -->
+            <div class="p-5 border-b flex justify-between items-center bg-gray-50 rounded-t-xl">
+                <h3 id="modal-title" class="text-xl font-bold text-gray-800">書評</h3>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-800 text-3xl leading-none">&times;</button>
+            </div>
+            
+            <!-- 滾動區域：包含簡介與評論 -->
+            <div class="overflow-y-auto flex-grow bg-white">
+                <!-- 書籍完整簡介展示區 -->
+                <div id="modal-book-details" class="p-5 border-b bg-blue-50/30">
+                    <!-- 完整簡介會動態插入這裡 -->
+                </div>
+                
+                <!-- 評論列表展示區 -->
+                <div class="p-5" id="modal-comments-list">
+                    <!-- 評論會動態插入這裡 -->
+                </div>
+            </div>
+            
+            <!-- 發表評論區 -->
+            <div class="p-5 border-t bg-gray-50 rounded-b-xl">
+                <h4 class="font-bold mb-3 text-gray-700">寫下你的評論</h4>
+                
+                <div class="flex items-center mb-3">
+                    <span class="mr-2 text-sm text-gray-600">你的評分:</span>
+                    <select id="new-comment-rating" class="border rounded p-1 text-sm bg-white">
+                        <option value="5">⭐⭐⭐⭐⭐ (5星)</option>
+                        <option value="4">⭐⭐⭐⭐ (4星)</option>
+                        <option value="3">⭐⭐⭐ (3星)</option>
+                        <option value="2">⭐⭐ (2星)</option>
+                        <option value="1">⭐ (1星)</option>
+                    </select>
+                </div>
+
+                <textarea id="new-comment-text" class="w-full border rounded-lg p-3 mb-3 focus:ring-2 focus:ring-blue-400 focus:outline-none" rows="3" placeholder="這本書對你有什麼啟發？能學到什麼？分享給其他讀者吧！"></textarea>
+                
+                <div class="flex justify-end">
+                    <button onclick="closeModal()" class="mr-3 px-4 py-2 text-gray-600 hover:bg-gray-200 rounded-lg transition">取消</button>
+                    <button onclick="submitComment()" class="bg-gray-900 text-white px-6 py-2 rounded-lg hover:bg-gray-700 transition shadow">發佈評論</button>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+
+    <script>
+        const books = [
+            {
+                "id": "ESLITE_001",
+                "category": "人文社科",
+                "title": "如果歷史是一群喵15: 大清風雲篇",
+                "rating": 4.6,
+                "reviews": 176,
+                "cover": "https://s2.eslite.com/unsafe/fit-in/x960/filters:format(webp)/s.eslite.com/b2b/vendor/vendor174255393534320250321184535/mainCoverImage1_1411970.jpg",
+                "target": "想輕鬆學歷史的學生、貓奴與漫畫愛好者",
+                "description": "大清傳奇降臨！\n全程高能，步步驚心！\n\n在告別明朝後，《如果歷史是一群喵》進入了第十五卷——「大清風雲篇」。\n本書將為讀者朋友們開啟清朝前半段的歷史，講述這個新皇朝是如何統一華夏並進入自己的全盛時期。南下中原的多爾袞、數次反叛的吳三桂，以及著名的康、雍、乾三帝都將在這本書中陸續登場，為大家描繪清初的動盪歲月。希望本書能獲得讀者朋友們的喜愛，再次感謝大家！\n\n★可愛漫畫附上參考典籍，沒有亂編，全部都源自文獻！\n★精彩附錄解說，輕鬆漫畫中學到有趣歷史，舒壓、學習兩不誤！",
+                "takeaways": [
+                    "1. 掌握清朝發展脈絡",
+                    "2. 認識清初關鍵人物",
+                    "3. 提升歷史學習興趣"
+                ]
+            },
+            {
+                "id": "ESLITE_002",
+                "category": "人文社科",
+                "title": "失控的焦慮世代, 如何面對心理疾病的瘟疫",
+                "rating": 4.6,
+                "reviews": 813,
+                "cover": "https://s2.eslite.com/unsafe/fit-in/x960/filters:format(webp)/s.eslite.com/b2b/newItem/2024/11/19/8141_084457838_531_mainCoverImage1.jpg",
+                "target": "身陷資訊焦慮、渴望內心平靜的現代人",
+                "description": "二○一○年代開始，青少年精神／心理健康急遽惡化，憂鬱症、焦慮症、自我傷害和自殺的比例急遽上升，成為全球化現象。\n  在《失控的焦慮世代》書中，社會心理學家海德特探討以玩耍為主的童年逐漸沒落、以手機為主的童年抬頭的趨勢，並歸納出為什麼智慧型手機、社群媒體和大型科技，成為全世界青少年心理健康崩潰的主因。",
+                "takeaways": [
+                    "1. 解析焦慮的深層根源",
+                    "2. 學習情緒調節技巧",
+                    "3. 重建健康心理邊界"
+                ]
+            },
+            {
+                "id": "ESLITE_003",
+                "category": "人文社科",
+                "title": "別對每件事都有反應2: 不執著的練習",
+                "rating": 4.4,
+                "reviews": 276,
+                "cover": "https://s2.eslite.com/unsafe/fit-in/x960/filters:format(webp)/s.eslite.com/b2b/newItem/2025/01/13/8622_164024112_931_mainCoverImage1.jpg",
+                "target": "容易受外界影響、高敏感族群",
+                "description": "台灣「2023-2024年度十大暢銷書」——《別對每件事都有反應》系列突破40萬冊，超強續作！「世界最值得尊敬的100名日本人」——枡野俊明，繼「該放下，就放下！」\n這次將以禪學教會我們，「學習不執著，過得更快活！」擺脫不適合的工作與人際關係，擁有順遂人生的99個禪練習！",
+                "takeaways": [
+                    "1. 練習放下過度執著",
+                    "2. 建立情緒防護網",
+                    "3. 找回自我生活主導權"
+                ]
+            },
+            {
+                "id": "ESLITE_004",
+                "category": "人文社科",
+                "title": "長女病: 我們不是天生愛扛責任",
+                "rating": 4.6,
+                "reviews": 1455,
+                "cover": "https://s2.eslite.com/unsafe/fit-in/x960/filters:format(webp)/s.eslite.com/b2b/newItem/2025/03/17/8985_191348330_236_mainCoverImage1.jpg",
+                "target": "習慣迎合他人、承擔過多家庭責任的女性",
+                "description": "在台灣社會中，長女常常承受各種期待，對上要體諒爸爸媽媽工作的辛苦，所以要幫忙維持家中的整潔；對下要照顧弟弟妹妹、最好成為弟弟妹妹的榜樣。\n\n同樣是子女，長女總是要出類拔萃，又能體恤父母，還要操持家業。\n\n本書作者是一位長女，她的母親也是，她發現兩人有著相同的勞碌命，不管在家裡與職場，常常必須擔負重任，但遺產分配或升遷這些好處，卻常常沒她們的份。\n\n為了探究「長女」如何養成，又有什麼樣的處境，作者透過觀察與採訪，紀錄了十幾位長女的生命故事，涵蓋不同世代與階級。\n\n這些故事呈現了當代台灣「女兒」、「女性」在家庭的角色，揭開那些理所當然的期待，如何造成長女症候群，讓她們在家庭與職場，總是成為過度承擔的人.",
+                "takeaways": [
+                    "1. 辨識不健康的家庭責任",
+                    "2. 學會溫和而堅定地拒絕",
+                    "3. 療癒童年隱形創傷"
+                ]
+            },
+            {
+                "id": "ESLITE_005",
+                "category": "人文社科",
+                "title": "金剛經白話講座: 放下的人生修行",
+                "rating": 4.8,
+                "reviews": 863,
+                "cover": "https://s2.eslite.com/unsafe/fit-in/x960/filters:format(webp)/s.eslite.com/b2b/vendor/vendor175255691112320250715132151/mainCoverImage1_1475941.jpg",
+                "target": "對佛學感興趣、尋求心靈頓悟的讀者",
+                "description": "《金剛經》是引領人生修行的寶貴經典\n生命中總有一個時刻，我們會開始真心希望自己變得更好，真心希望自己的生命變得更有意義，並且願意在這件事情上付出努力，這時我們就已開始踏上了人生修行的旅途。\n在我們提升自我的道路上，《金剛經》能提供我們最簡便、最直接，也最有效的方法。\n\n•正確地觀看我們自己的心，就是般若智慧\n我們的心，喜歡認定事物是這樣的，或那樣的。這個認定，會逐漸強烈，變成難以改變的傾向，然後控制我們的頭腦與身體，讓我們依循這個認定而去行為與反應。\n如果我們能夠從這個認定的傾向中掙脫出來，那我們就能脫困，不會被控制，也能得到自由。透過自我覺察，知道自己的本心，放下自己原有的傾向，這種能力，就是我們內心智慧的顯現，就是般若智慧。\n\n•放下，就能斷除執念，走向自己真實的生命\n《金剛經》告訴我們，只要能放下執著，我們不但可以不隨因果業力而流轉，同時也可以體會到生命真實的意義。當我們慢慢學會「放下」，我們的世界就會越來越明澈，越來越清楚，我們的人生道路也會越來越明確，越來越篤定。最後，我們會知道自己應該過怎樣的生活，成為怎樣的人，在怎樣的事情上努力，並在「宗教性」的實踐上，圓滿我們的一生。\n\n•《金剛經》給我們的是究竟圓滿的智慧\n用置身事物之上的角度觀看自己、觀看他人、觀看環境、觀看時空的變化，也觀看自己思維中的一切。觀看之後再如實地放下，這就是《金剛經》要告訴 我們的智慧。它能讓我們對周遭世界多一分包容，也讓我們多一分洞見，反觀自照，成為更好的自己。這就是智慧之上的智慧，究竟圓滿的智慧。",
+                "takeaways": [
+                    "1. 理解金剛經核心要義",
+                    "2. 將佛法應用於日常生活",
+                    "3. 體悟破除我執的平靜"
+                ]
+            },
+            {
+                "id": "ESLITE_006",
+                "category": "華文創作",
+                "title": "把日子慢慢變好 (暢銷慶功紀念版)",
+                "rating": 4.5,
+                "reviews": 1182,
+                "cover": "https://s2.eslite.com/unsafe/fit-in/x960/filters:format(webp)/s.eslite.com/b2b/vendor/vendor174427516999020250410165250/mainCoverImage1_1421376.jpg",
+                "target": "追求質感生活、想放慢步調的都市人",
+                "description": "你想要和怎樣的自己，\n共度餘生？\n\n要去愛一個\n能「把日子慢慢變好」的對象，\n而不是磕磕碰碰，擾亂你生活的人。\n\n――黃山料長達八年的日記――\n最誠實的自我對話，深掘潛意識的祕密",
+                "takeaways": [
+                    "1. 學會在瑣事中發現美好",
+                    "2. 建立專屬的慢生活節奏",
+                    "3. 提升日常的儀式感"
+                ]
+            },
+            {
+                "id": "ESLITE_007",
+                "category": "華文創作",
+                "title": "想哭就哭吧, 你不需要那麼懂事",
+                "rating": 4.7,
+                "reviews": 862,
+                "cover": "https://s2.eslite.com/unsafe/fit-in/x960/filters:format(webp)/s.eslite.com/b2b/newItem/2025/01/06/8141_133338168_733_mainCoverImage1.jpeg",
+                "target": "壓抑情緒、需要心靈慰藉的疲憊靈魂",
+                "description": "所有曾經迷茫的人、所有為愛與孤獨掙扎過的靈魂，這本書是為你而寫。\n故事發生在一座遙遠的海島，命運將來自不同背景的人們帶到了一起。這裡有因愛漂泊的義大利廚師、有用冷漠隱藏傷痕的紋身女子、有在環遊旅途中尋找自我的年輕伴侶，也有帶著未竟約定而來的敘事者。每一個人的故事都如同潮汐般交織，交替著歡笑與淚水、失落與救贖。\n每一次相遇，都是對時間的挑戰；每一次離別，都是生命中的永恆。\n在這座島上，這些人物所經歷的每一段情感，無論是友情的微妙轉變，愛而不得的無奈，還是在孤獨中找到救贖的瞬間，都是對人性最真實的揭示。未曾說出口的遺憾、在沉默中釋懷的情感，勾勒出每個人可能經歷過的青春與成長。這不僅是關於過去的回憶，更是一場通往自我和解的旅程。\n「在那座島上，我們都試著放下曾經的傷痕，尋找一種新的平靜。」\nPeter Su以溫柔且細膩的筆觸，捕捉人性深處複雜的情感，帶領讀者走進一個錯綜複雜卻又充滿療癒的故事世界。這本書告訴我們，過去的傷痕並非終點，而是讓我們學會重新看見光的起點。\n\n以雙色調和黑白色調的影像呈現，巧妙地捕捉記憶中的吉光片羽。",
+                "takeaways": [
+                    "1. 正視並接納負面情緒",
+                    "2. 明白脆弱不是缺點",
+                    "3. 獲得溫柔的自我療癒"
+                ]
+            },
+            {
+                "id": "ESLITE_008",
+                "category": "華文創作",
+                "title": "變成自己想望的大人",
+                "rating": 4.2,
+                "reviews": 2456,
+                "cover": "https://s2.eslite.com/unsafe/fit-in/x960/filters:format(webp)/s.eslite.com/b2b/newItem/2025/06/21/8924_205616636_444_mainCoverImage1.jpg",
+                "target": "對未來迷惘、處於人生轉折期的青年",
+                "description": "侯文詠的人生，很多時候是「做了才知道」。\n\n小時候不被當作天賦的寫作，長大後卻成為他賴以為生的能力。當他斜槓醫師與作家，別人說吃力不討好，他卻覺得「賺到了」。寫書寫到去當編劇、製作人、主持人、演講者……因為喜歡，讓他如獲至寶，繞了一點路，反而看到了出乎意料的風景。\n\n也有些時候，他不確定怎麼走才好。\n\n在醫院工作，幫哭喊的小孩注射麻醉劑。第一次創業，資金和夢想都燃燒殆盡。面對父母的病痛與離世，心裡破了個大洞，以為再也無法癒合。那些殺不死他的，並沒有讓他變得更強壯。\n\n然而經歷那些，他卻變得更有韌性。回望走來的那條路，某些身影始終清晰──讀到心儀的文學作品而激動不已的自己，被仰望的前輩鼓勵的自己，辭去醫師後徬徨但從不後悔的自己……於是他依然在路上，帶著一路成長的每一個自己，朝著內心想望的那個大人前去。\n\n▋寫給走在「好玩」、「不乖」這條路的你\n如果可以的話，有一天，我也要變成類似暗夜迷霧中的車尾燈那樣微弱的光亮，成為陪別人走一段自己熟悉的路，給別人帶來信心的人。一開始想寫一本像這樣的書，是從這個畫面開始的……\n一條「好玩」、「不乖」的路，並沒有想像中那麼寂寥。因為想望，因為內心的光，\n我很確信，我們終將一再相遇。\n──侯文詠",
+                "takeaways": [
+                    "1. 釐清自我真實渴望",
+                    "2. 勇敢面對成長的陣痛",
+                    "3. 勾勒理想大人的輪廓"
+                ]
+            },
+            {
+                "id": "ESLITE_009",
+                "category": "華文創作",
+                "title": "有時幸, 有時傷",
+                "rating": 4.4,
+                "reviews": 1330,
+                "cover": "https://s2.eslite.com/unsafe/fit-in/x768/filters:format(webp)/s.eslite.com/b2b/vendor/vendor173312267244220241202145753/mainCoverImage1_1363320.jpg",
+                "target": "經歷過失去與挫折、正在療傷的人",
+                "description": "「讓我變得特別的是生活，\n讓我變得普通的亦是生活。\n這些噩耗是我的，這些愛也是我的。」\n\n最具感染力的 年度華文暢銷作家 張西\n睽違3年，從未曝光全新散文作品\n★寫給失去，和失去之後的生活\n★也寫給在愛與失去、幸與傷之間反覆的你",
+                "takeaways": [
+                    "1. 學會與傷痛和平共處",
+                    "2. 從挫敗中汲取前進力量",
+                    "3. 感恩生命中的微小幸運"
+                ]
+            },
+            {
+                "id": "ESLITE_010",
+                "category": "華文創作",
+                "title": "叛逆玩家1",
+                "rating": 4.9,
+                "reviews": 2012,
+                "cover": "https://s2.eslite.com/unsafe/fit-in/x768/filters:format(webp)/s.eslite.com/b2b/newItem/2024/11/08/8852_095926274_945_mainCoverImage1.jpg",
+                "target": "喜愛懸疑冒險、挑戰世俗框架的讀者",
+                "description": "最瘋狂的配對，最火辣的相遇。\n地獄通知我已死？你才去死！\n\n都市傳說瘋狗攻 Ｘ 盛世美顏反差受\n無法逃離的遊戲密室，馴服與被馴服攻防挑戰，\n強強聯手，地獄不過僅是遊樂場。",
+                "takeaways": [
+                    "1. 體驗高潮迭起的劇情",
+                    "2. 學習跳脫框架思考",
+                    "3. 感受反叛精神的魅力"
+                ]
+            },
+            {
+                "id": "ESLITE_011",
+                "category": "翻譯文學",
+                "title": "城與不確定的牆",
+                "rating": 4.7,
+                "reviews": 2407,
+                "cover": "https://s2.eslite.com/unsafe/fit-in/x768/filters:format(webp)/s.eslite.com/b2b/vendor/vendor173025765633220241030110737/mainCoverImage1_1339384.jpg",
+                "target": "村上春樹書迷、熱愛魔幻寫實文學的人",
+                "description": "時隔七年，\n期待已久的村上春樹最新長篇小說！\n塵封已久的故事再次開始述說，\n帶你進入村上春樹沉靜深邃的祕密世界\n\n我多麼強烈地想要進到那座城，\n想去那裡見真正的妳……\n\n夏天的黃昏，十六歲的妳對十七歲的我說起那座城的故事，城被高牆團團圍住，牆只有一個門，由一個頑強的守門人守護著。在那裡的妳既不作夢，也不流淚。然而，住在那裡的妳才是真正的妳，此時此地的妳只是像替身那樣的存在。\n因為我真的非常想見妳，便決定出發去那裡尋找在圖書館工作的妳。這是個一本書也沒有的圖書館，架子上排列的只有「古夢」，而我在這個圖書館被賦予了「夢讀」這樣的任務，也就是負責閱讀古夢。\n城與牆、神祕圖書館、蛋形的古夢，還有妳……村上春樹在這部小說中，再次構造出了一個完好終結的奇異故事，帶你進入一個沉靜深邃的祕密世界。",
+                "takeaways": [
+                    "1. 沉浸於大師級文學意境",
+                    "2. 反思生命中的無形之牆",
+                    "3. 體悟愛與失落的哲理"
+                ]
+            },
+            {
+                "id": "ESLITE_012",
+                "category": "翻譯文學",
+                "title": "以為是愛情, 結果是心律不整",
+                "rating": 4.4,
+                "reviews": 984,
+                "cover": "https://s2.eslite.com/unsafe/fit-in/x768/filters:format(webp)/s.eslite.com/b2b/vendor/vendor173329697998720241204152303/mainCoverImage1_1364523.jpg",
+                "target": "對愛情感到困惑、喜歡幽默小品的讀者",
+                "description": "銀髮族，指上了年紀的老人家；川柳，則是日本傳統短詩，只要字數符合「5、7、5」，想寫什麼都可以！\n銀髮川柳？是描寫老後日常種種的趣味打油詩，從抱怨老伴、身體，到不服老的脾氣，百無禁忌！\n（編註：川柳由日文翻譯為中文後，為精準呈現出句意中的詼諧幽默，並未拘泥於「5、7、5」字數格式）\n\n▲殯儀館是久未連絡老友碰頭的地方？\n▲拍遺像時笑得太開心，被拒用了！\n▲老伴去旅遊，我在住院，貓咪卻能住寵物旅館？\n▲胸口悸動是愛情來了？錯！只是心律不整！\n\nThreads、Instagram萬人熱議，日本暢銷破百萬冊\n老人家把日常寫成詩，笑中帶淚又地獄無底限\n\n●年紀大了的生活，忘東忘西+機能退化？\n「老爸對著／電話答錄機大喊／叫它說話慢一點」\n「年紀大後，身上多了不少蟲／眼中有飛蚊／耳裡有蟬鳴」\n「計步器上／一半的步數／都是在找東西」\n\n●嫌東嫌西嫌老伴，愛情何時能重燃？\n「單憑一根手指／妻子就能操控智慧型手機／還有我」\n「老太婆／你給狗狗的愛／也分我一些吧」\n「以前牽手是約會／現在則是／為了不要跌倒」\n\n人終有一老，誰都逃不掉。但面對生活，你可以選擇笑。\n時而嘲笑自己的病痛、和老伴相看兩相厭的日常；\n時而有股瀟灑的豁達，笑看人生黃昏時。\n\n「銀髮川柳」是日本全國自費老人之家協會舉辦，接受全日本投稿的徵文活動。\n只要和老人家有關，就可以寫成短詩投稿，全無禁忌！\n平均投稿民眾年齡69歲，最年長的甚至超過100歲。\n集結人生老前輩智慧、感嘆、豁達的文章，感動萬千讀者與網友：\n「簡直就是我老爸！」\n「太地獄了......」\n「先笑出來，然後紅了眼眶」\n「年紀大了，才看得到的日常風景」\n「買了和老媽一起看，我們都笑到不行」",
+                "takeaways": [
+                    "1. 看破浪漫包裝下的現實",
+                    "2. 學會更理性看待親密關係",
+                    "3. 在幽默中釋懷感情創傷"
+                ]
+            },
+            {
+                "id": "ESLITE_013",
+                "category": "翻譯文學",
+                "title": "戰龍系列I: 第四翼",
+                "rating": 4.7,
+                "reviews": 212,
+                "cover": "https://im2.book.com.tw/image/getImage?i=https://www.books.com.tw/img/001/101/65/0011016503.jpg&v=67e13458k&w=524&h=524",
+                "target": "奇幻文學愛好者、喜歡龍與魔法世界的讀者",
+                "description": "在試閱第四翼時，一種久違的悸動悄然甦醒。這種悸動來自於過去，那些我曾深深沉浸於戰龍無畏系列的時光。那是一段充滿人與龍羈絆的旅程，一場跨越種族的信任與忠誠之歌。然而，這趟旅程卻未曾迎來真正的終章，留下了一個未能填補的遺憾。多年來，我不斷回望，期待有朝一日能再度踏上類似的奇幻征途，重新體驗那份飛翔於雲端的悸動與戰友般的情誼。而如今，《第四翼》讓我看見了這份期待的微光。\n\n女主角從未渴望成為戰士，她的世界應該是像我一樣由書卷與知識構築而成的寧靜天地，然而命運卻將她推入殘酷的戰爭學院。這裡，只有最強者才能馴服龍，只有最堅韌的意志才能生存下來。她與龍的初次互動，帶著一種微妙而令人悸動的張力。這不只是關乎力量的角逐，而是一場靈魂深處的試煉——彼此衡量、彼此試探，最終建立出獨一無二的羈絆。這一刻，我彷彿看見了當年勞倫斯與天命初次相遇的影子，那份來自異種生命間的理解與聯結，跨越了語言與文化，單憑心意交會，便能共譜一曲壯闊的詩篇。\n\n試閱部分雖然尚未涉及浪漫情節，但作者細膩的筆觸，已經鋪陳出角色之間潛在的情感張力，使人對後續的發展充滿無限遐想。我期待著薇奧莉特如何與她的龍夥伴並肩成長，如何在血與火的考驗中蛻變。我期待著那份羈絆如何深化，是否能達到如《戰龍無畏》般讓人心醉神迷的高度。我更期待著，這一次的旅程，能夠為我內心長年未竟的渴望，帶來真正的答案。\n\n多年來，我一直在尋找能夠填補《戰龍無畏》缺憾的作品，而《第四翼》或許正是那道解答。這不只是另一場人龍共鳴的冒險，而是對那些曾經燃燒過、卻未能迎來結局的夢的一種延續。這一次，我不再只是回首過往，而是滿懷期待，迎向新的天空，等待這場屬於龍與騎士的史詩再度展翅。",
+                "takeaways": [
+                    "1. 沉浸於宏大的奇幻世界觀",
+                    "2. 跟隨主角經歷熱血成長",
+                    "3. 享受驚險刺激的戰鬥場面"
+                ]
+            },
+            {
+                "id": "ESLITE_014",
+                "category": "翻譯文學",
+                "title": "山茶花情書: 山茶花文具店．再次與你相逢",
+                "rating": 4.3,
+                "reviews": 1771,
+                "cover": "https://s2.eslite.com/unsafe/fit-in/x768/filters:format(webp)/s.eslite.com/b2b/vendor/vendor172906870745320241016165200/mainCoverImage1_1332556.jpg",
+                "target": "喜愛溫馨治癒系小說、對書信文化著迷的人",
+                "description": "在鎌倉山腳下成為代筆人的鳩子，\n與蜜朗、QP妹妹組成的三人家庭，擴展為五人家庭了。\n在家事與育兒之間奮鬥的同時，重新開始了暫停許久的代筆工作。\n可愛的QP妹妹迎來了可怕的叛逆期，\n與新搬來的隔壁鄰居關係也不太好，\n這時鳩子又發現了前任代筆人隱藏的祕密情書……\n\n為了表白心意，\n山茶花文具店再度開張！\n\n情書，不僅寫給情人，\n也可以寫給母親、孩子、朋友和自己。\n表達自己最真切心聲的，都是情書。",
+                "takeaways": [
+                    "1. 感受手寫書信的溫度",
+                    "2. 體會人與人之間的羈絆",
+                    "3. 獲得細水長流的感動"
+                ]
+            },
+            {
+                "id": "ESLITE_015",
+                "category": "翻譯文學",
+                "title": "像這樣的小事",
+                "rating": 4.2,
+                "reviews": 646,
+                "cover": "https://s2.eslite.com/unsafe/fit-in/x768/filters:format(webp)/s.eslite.com/b2b/newItem/2024/12/13/7951_102623783_475_mainCoverImage1.jpg",
+                "target": "偏好細膩日常、喜歡短篇故事的文藝青年",
+                "description": "種種微不足道的小事，便累積成了一生。\n都是小事，為何會時刻恐懼擔憂呢？\n\n為什麼愈近的事物愈難看到？你是否有勇氣做對的事？\n\n一九八五年愛爾蘭冬天，大寒肆虐。幾週後到聖誕節期間，煤炭商人比爾‧費隆忙得焦頭爛額。冰凍的小鎮裡，只有三種人得以自由出入鄰舍前後門：神父、醫生、運煤炭工人。一個冷冽清晨，當比爾親自為當地修道院送煤炭時，他意外發現一名衣衫不整、赤腳的女孩被鎖在煤倉裡……\n\n感人肺腑、暢銷全球的小說《像這樣的小事》，是一部關於希望、無聲勇氣，和人性同理心的故事。俯仰之間，喚醒讀者良善與改變的可能性。\n\n「聖誕節總是會激發出人們最好的一面和最壞的一面。」\n\n烏鴉滿天的十二月。我們究竟是習於受苦，還是乾脆視而不見？\n有時候，真正的故事並不想被人述說。",
+                "takeaways": [
+                    "1. 在平凡小事中看見偉大",
+                    "2. 提升對周遭事物的感知力",
+                    "3. 品味細膩溫潤的文字美學"
+                ]
+            },
+            {
+                "id": "ESLITE_016",
+                "category": "藝術設計",
+                "title": "想畫就會畫! 最好玩的畫畫課套書",
+                "rating": 4.4,
+                "reviews": 604,
+                "cover": "https://s2.eslite.com/unsafe/fit-in/x768/filters:format(webp)/s.eslite.com/b2b/vendor/vendor175812241586720250917232011/mainCoverImage1_1524115.jpg",
+                "target": "想學畫畫的新手、尋找繪畫靈感的人",
+                "description": "一位才華洋溢的英國插畫家媽媽，送給孩子的創意禮物！\n不只用紙筆的101種藝術玩法──牙刷、彈珠、剪刀、印泥、色紙、軟橡皮、手電筒、圓規、布、銅板、迴紋針……開啟你的「超」藝術想像力！\n畫畫無難事，只怕老師不會教。Marion是享譽國際的英國插畫家，以鮮明的手繪風獨樹一格，合作的客戶從名廚傑米‧奧利佛（Jamie Oliver）、企鵝出版社（Penguin Books）、雜誌Wallpaper、Design Museum到英國《衛報》等。插畫是她的本業，但她卻出了一本教大家畫畫的書，而且方法出奇的簡單？",
+                "takeaways": [
+                    "1. 掌握基礎的繪畫技巧",
+                    "2. 克服下筆的恐懼感",
+                    "3. 享受隨手塗鴉的樂趣"
+                ]
+            },
+            {
+                "id": "ESLITE_017",
+                "category": "藝術設計",
+                "title": "幹大的五角傳",
+                "rating": 4.5,
+                "reviews": 798,
+                "cover": "https://s2.eslite.com/unsafe/fit-in/x768/filters:format(webp)/s.eslite.com/b2b/vendor/vendor174712438145420250513161943/mainCoverImage1_1439407.jpg",
+                "target": "平面設計師、品牌策劃與視覺藝術家",
+                "description": "想活下來，光靠努力不夠；\n想爬上去，就得讓資源認得你的名字。\n\n從街頭毒販到葛萊美得主、從嘻哈巨星到投資人與製片人──\n五角（50 Cent）將賣出 3,000 萬張專輯的影響力，轉化為影集帝國、維他命水股權奇蹟、烈酒品牌崛起……這些商業奇蹟背後的共同公式，只有一個詞：Hustle。\n\n「沒有所謂的『成功』。不管你累積了多少財富、名聲有多響亮、嚐過多少勝利的滋味，掙扎、戲劇性事件和障礙都會不斷出現。目標不僅僅是成功，而是學會如何維持成功，這是我從失敗中學到的寶貴經驗。」\n──五角\n\n五角不只是嘻哈傳奇，還是在商業世界裡殺出血路的高級玩家。\n他要你知道一件事：這社會不公平，但，你有機會整碗捧去。",
+                "takeaways": [
+                    "1. 學習國際頂級設計思維",
+                    "2. 解析成功品牌視覺策略",
+                    "3. 提升商業設計實戰能力"
+                ]
+            },
+            {
+                "id": "ESLITE_018",
+                "category": "藝術設計",
+                "title": "這不是一本畫畫書: Hank陪你畫畫專注練習",
+                "rating": 4.8,
+                "reviews": 171,
+                "cover": "https://s2.eslite.com/unsafe/fit-in/x768/filters:format(webp)/s.eslite.com/b2b/vendor/vendor174167720500320250311151327/mainCoverImage1_1405375.jpg",
+                "target": "注意力不集中、想透過繪畫靜心的人",
+                "description": "嗨！我是Hank！\n這不是一本畫畫教學，而是陪你在日常專注與感知練習\n\n「開始一件事情，最重要的是要先學會享受。」\n「不要害怕嘗試，做錯並不可怕，最可怕的是沒有行動。」\n「有意義的事，不再取決於他人的評價，你要做的，只有真誠的表達自我。」\n「善良是一種力量，它可能看起來很微弱，但在長時間中，它會成為最堅韌的存在。」\n───28個哲理故事，寫給在意被評論、被檢視、且擔心自己不夠完美的你。\n\n➔公園裡，哪隻狗最能吸引你注意？\n➔三角飯糰的形狀還可以是什麼？\n➔咖啡店裡的人正在做什麼？\n➔只有圓圈跟一條線，你會想到什麼？\n➔選兩個不喜歡的顏色來組合畫畫看吧！\n───每日5分鐘的專注練習，讓專注成為改變的力量",
+                "takeaways": [
+                    "1. 藉由繪畫進入心流狀態",
+                    "2. 提升日常專注力",
+                    "3. 釋放壓力與焦慮"
+                ]
+            },
+            {
+                "id": "ESLITE_019",
+                "category": "藝術設計",
+                "title": "日本復古插畫配色800",
+                "rating": 4.3,
+                "reviews": 2368,
+                "cover": "https://s2.eslite.com/unsafe/fit-in/x768/filters:format(webp)/s.eslite.com/b2b/vendor/vendor172906102965120241016144351/mainCoverImage1_1332268.jpg",
+                "target": "插畫家、排版設計師、熱愛復古風格的人",
+                "description": "【小尾洋平超完美復古配色點子】\n1.配色訣竅 2.訓練手寫溫度 3.圖紋設計 4.故事設定\n5.平面設計 6.商品設計 7.裝飾應用\n\n本書劃分成「NATURAL」、「POP」、「RETRO」、「SPACE」、「GIRLY」、「FANTASY」、「COOL」、「JAPAN」8個章節，每個章節會介紹 5 種不同主題的配色方案，每個配色方案會說明顏色如何配比與風格搭配，以及2色、3色、4色互搭後產生的效果，總計多達 800 種配色範例",
+                "takeaways": [
+                    "1. 掌握復古色彩搭配原則",
+                    "2. 豐富個人的設計調色盤",
+                    "3. 激發插畫創作靈感"
+                ]
+            },
+            {
+                "id": "ESLITE_020",
+                "category": "藝術設計",
+                "title": "人本建築: 一位匠造者的世界建設指南",
+                "rating": 4.8,
+                "reviews": 2037,
+                "cover": "https://s2.eslite.com/unsafe/fit-in/x768/filters:format(webp)/s.eslite.com/b2b/newItem/2025/02/14/334_161005530_829_mainCoverImage1.jpg",
+                "target": "建築系學生、空間設計師及都市規劃者",
+                "description": "●我們的世界正在失去人性●\n\n太多公司關心股東更勝社會；太多政客關心權力，而非投票給他們的人民；\n\n太多城市讓人感到沒有靈魂和壓抑，因為它們是為商業而設計\n\n\n\n「孩子吃的食物不應該是效率的味道，\n\n現在，該是我們要求建築營養豐富的時候了，\n\n建築應該在我們與它相遇時滋養我們。」\n\n致力將公共價值與歡樂帶回建築界，展開公共對話\\\n\n\n▌挑戰過往，獻給所有人的建築之書 ▌\n\n建築如何符合人性？如何讓人們駐足、社交、約會？\n\n放眼望去，建築攸關利潤和效率\n\n各大城市，建築如出一轍，面貌模糊\n\n\n帝國大廈｜泰姬瑪哈陵｜碎片塔｜巴黎鐵塔｜羅浮宮｜聖家堂\n\n為何擄獲世人的喜愛？\n\n新加坡的賓樂雅飯店│倫敦愛奇伍德馬廄屋│哈里發塔│龐畢度中心\n\n如何做到當代建築的人本設計\n\n\n●認識設計大師的建築初心＋建築養成＋長年思考\n\n●帶領所有人，對未來建築趨勢的再一次深刻反思",
+                "takeaways": [
+                    "1. 理解人性化空間設計",
+                    "2. 學習建築與環境的共生",
+                    "3. 培養立體的空間美學觀"
+                ]
+            },
+            {
+                "id": "ESLITE_021",
+                "category": "心理勵志",
+                "title": "世界盡頭的咖啡館: 這一生, 我為何而存在?",
+                "rating": 4.4,
+                "reviews": 1596,
+                "cover": "https://s2.eslite.com/unsafe/fit-in/x768/filters:format(webp)/s.eslite.com/b2b/newItem/2025/02/25/8087_142049549_556_mainCoverImage1.jpg",
+                "target": "對工作失去熱情、正在尋找人生意義的人",
+                "description": "在一家位於偏僻之地、彷彿世界盡頭的小咖啡館裡，\n疲憊的旅人約翰正處在一個十字路口，\n只想在繼續自己的旅行前補充一點能量。\n但這一晚，他發現了完全不同的心靈補給——\n\n\n除了今日特餐之外，\n這間咖啡館的菜單還列出了三個問題，\n鼓勵所有客人思考：\n\n你為什麼在這裡？\n你害怕死亡嗎？\n你感到滿足嗎？\n\n透過這些靈魂拷問，以及在咖啡館內遇見的三個人，\n約翰踏上了一趟覺醒的旅程，\n從繁忙的城市到慵懶的南美洲海灘，\n從渾渾噩噩卻不滿足的生活，\n到為自己、為人生定錨一個位置——\n\n如果你走在人生的迷霧中，歡迎來到「問題咖啡館」。\n\n「人生其實是一個精彩的故事。\n只是有時候，我們忘了自己就是作者，\n能夠隨心所欲地書寫它。」",
+                "takeaways": [
+                    "1. 釐清個人的存在目的",
+                    "2. 擺脫社會期待的束縛",
+                    "3. 找回生活與工作的熱情"
+                ]
+            },
+            {
+                "id": "ESLITE_022",
+                "category": "心理勵志",
+                "title": "生命中最大的寶藏就是你自己",
+                "rating": 4.7,
+                "reviews": 1632,
+                "cover": "https://s2.eslite.com/unsafe/fit-in/x768/filters:format(webp)/s.eslite.com/b2b/newItem/2025/07/14/9033_143639972_376_mainCoverImage1.jpg",
+                "target": "自我價值感低落、渴望提升自信的讀者",
+                "description": "Stand by Yourself. 每個人都可以把自己煉得閃閃發光！\n生命所需的一切，都存在我們自己身上了，\n別忘記跟自己在一起，你就是你自己生命中最大的寶藏。",
+                "takeaways": [
+                    "1. 建立堅定的自我認同",
+                    "2. 停止無意義的自我批評",
+                    "3. 學會真正地愛自己"
+                ]
+            },
+            {
+                "id": "ESLITE_023",
+                "category": "心理勵志",
+                "title": "如此歲月, 如此幸福",
+                "rating": 4.5,
+                "reviews": 2166,
+                "cover": "https://s2.eslite.com/unsafe/fit-in/x768/filters:format(webp)/s.eslite.com/b2b/newItem/2025/05/23/7951_112651924_378_mainCoverImage1.jpg",
+                "target": "追求平淡幸福、喜歡生活隨筆的讀者",
+                "description": "疾病，是我一生的朋友。\n死亡是我熟悉的路人，\n我和它擦肩而過，已太多次。\n我不會奢望自己還有多少歲月。\n我的目送，是對自己生命旅程最後夢想的目送。\n我想的不是如何布展我的喪禮，\n那已經與我無關，\n而是如何不負最後的旅程。",
+                "takeaways": [
+                    "1. 學會感恩當下的生活",
+                    "2. 在歲月流逝中保持從容",
+                    "3. 體會平淡是真的哲理"
+                ]
+            },
+            {
+                "id": "ESLITE_024",
+                "category": "心理勵志",
+                "title": "你的人生, 他們六個說了算! 決定你一生的六種物質",
+                "rating": 4.9,
+                "reviews": 1167,
+                "cover": "https://s2.eslite.com/unsafe/fit-in/x768/filters:format(webp)/s.eslite.com/b2b/newItem/2024/12/19/8924_114610360_243_mainCoverImage1.jpg",
+                "target": "想了解大腦運作、優化生活效率的人",
+                "description": "我們的生活，就像在調製一杯雞尾酒，而你的一切身心狀態，都是由體內的物質來決定，想要活力滿滿？就來點多巴胺和正腎上腺素！想要全心投入？來點催產素吧！想要放鬆的時候，就多添加一點血清素！要嗨一波？就找一點腦內啡！想要充滿自信，就加一點睪固酮！\n\n但這些物質並非只有帶給我們正向的效果，他們同時也可能是造成問題的雙面刃，速效多巴胺的刺激，可能造成我們追求當下滿足，之後陷入無盡空虛；催產素帶來的歸屬感，可能讓我們成為群體之惡的幫兇；一旦對腦內啡帶來的刺激上了癮，甚至會讓我們選擇傷害自己……\n\n本書是前所未有的「身體物質實用指南」，提供確實有用的生活實踐法。作者憑藉書中所教的方法，不只擺脫憂鬱症，更成功締造事業的高峰。懂得善用體內的「物質」，將成為你不可多得的人生助力，完全發揮你的潛能，幫助你有效解決困難，邁向你渴望的幸福未來。",
+                "takeaways": [
+                    "1. 認識大腦化學物質的作用",
+                    "2. 學會駭客自己的大腦",
+                    "3. 提升決策力與幸福感"
+                ]
+            },
+            {
+                "id": "ESLITE_025",
+                "category": "心理勵志",
+                "title": "捨得自己: 金剛經的日常實踐",
+                "rating": 4.5,
+                "reviews": 2133,
+                "cover": "https://s2.eslite.com/unsafe/fit-in/x768/filters:format(webp)/s.eslite.com/b2b/newItem/2024/10/29/8647_112747982_307_mainCoverImage1.jpg",
+                "target": "在職場與生活中面臨取捨難題的現代人",
+                "description": "本書以《金剛經》四大要義為架構，分享吳若權數年來在日常生活中實踐《金剛經》的心得，佐以親身經歷的真實故事，搭配經文中的金句，試著以拋磚引玉的線索，共同編織出佛陀智慧的錦緞，與讀者互勉。\n\n但願你也能從此得到「應無所住，而生其心」的解脫，不再執著於各式各樣的念頭，還給靈魂翱翔的自由，以自己獨特的方式，從此岸到彼岸。而抵達的那一刻，亦是全新的出發。",
+                "takeaways": [
+                    "1. 學會放下不必要的執念",
+                    "2. 掌握人生取捨的智慧",
+                    "3. 在捨與得之間找到平衡"
+                ]
+            },
+            {
+                "id": "ESLITE_026",
+                "category": "健康生活",
+                "title": "謝謝你留下來陪我",
+                "rating": 4.9,
+                "reviews": 551,
+                "cover": "https://s2.eslite.com/unsafe/fit-in/x768/filters:format(webp)/s.eslite.com/b2b/newItem/2025/06/13/13755_102520850_969_mainCoverImage1.jpg",
+                "target": "經歷喪親、失戀或陪伴重症病患的家屬",
+                "description": "謝謝你留下來陪我\n\n為失智者、照顧者找出口，林靜芸醫師勇敢書寫林芳郁院長的故事\n\n\n\n林芳郁，低調謙沖，無聲有光～\n\n三大醫學中心院長、心臟外科權威。\n\n終結台大紅包文化、催生緊急救護EMT體系、改革三大醫學中心，對台灣醫療帶來巨大而深遠的影響。",
+                "takeaways": [
+                    "1. 學習如何給予有效陪伴",
+                    "2. 健康地面對分離與死亡",
+                    "3. 在悲傷中找到重生的力量"
+                ]
+            },
+            {
+                "id": "ESLITE_027",
+                "category": "健康生活",
+                "title": "修復粒線體, 發炎不失控, 根治慢性病的自然療法",
+                "rating": 4.4,
+                "reviews": 998,
+                "cover": "https://s2.eslite.com/unsafe/fit-in/x768/filters:format(webp)/s.eslite.com/b2b/newItem/2025/02/14/8113_164515652_14_mainCoverImage1.jpg",
+                "target": "受慢性病困擾、關注抗老與細胞健康的人",
+                "description": "聚焦粒線體，揭開制病機制，解鎖根治療法密碼，快速逆轉難治慢性病\n自然醫學博士陳俊旭每次新書出版，讓讀者驚喜連連，而這本《聚焦粒線體，逆轉發炎》是是眾所期待十年之久《發炎，並不是件壞事》的下冊，更集結過去的精萃與最新前瞻性醫學觀點，以及確實可行的自然療法，新書完整解密慢性病致病機制、粒線體更新的高血酮療法、有效快速逆轉慢性病的對症自然療法，都源自於他豐厚的醫學涵養與厚度。\n陳博士就是因為自己過敏、糖尿病體質，親身實證搭配對證的自然療法可以逆轉或根治，而就連主流醫學無藥可醫的精神疾病都能夠痊癒。",
+                "takeaways": [
+                    "1. 了解粒線體對健康的影響",
+                    "2. 掌握抗發炎的飲食原則",
+                    "3. 學會啟動身體自癒力"
+                ]
+            },
+            {
+                "id": "ESLITE_028",
+                "category": "健康生活",
+                "title": "碳水循環: 一輩子都瘦用的增肌減脂飲食法",
+                "rating": 4.8,
+                "reviews": 398,
+                "cover": "https://s2.eslite.com/unsafe/fit-in/x768/filters:format(webp)/s.eslite.com/b2b/newItem/2025/06/17/9033_160735870_746_mainCoverImage1.jpg",
+                "target": "想減脂增肌、遭遇減肥停滯期的健身族",
+                "description": "無論你是在減重路上跌跌撞撞、屢敗屢戰的「資深體重控制員」，或是剛踏入增肌減脂世界的「初心飲食管理者」，這本書都將成為你的實用指南。你會知道：\n\n◆ 在不同的碳水循環日，可以攝取哪些澱粉\n◆ 估算蛋白質每天要吃多少、吃什麼、何時吃\n◆ 分辨脂肪好壞，並根據烹調方式挑選適合的油品\n◆ 各種運動強度的燃脂效果與飲食搭配\n\n本書從建立正確的減重觀念出發，逐步分析三大營養素在「碳水循環飲食」的攝取原則，結合實用的運動建議，幫助你重新掌握自己的身體節奏，成功打造健康、穩定、可長久維持的理想體態！",
+                "takeaways": [
+                    "1. 掌握靈活攝取碳水的技巧",
+                    "2. 突破減脂平台的瓶頸",
+                    "3. 建立可持續的健康體態"
+                ]
+            },
+            {
+                "id": "ESLITE_029",
+                "category": "健康生活",
+                "title": "易學易用黃帝內經十二時辰養生法",
+                "rating": 4.6,
+                "reviews": 1987,
+                "cover": "https://s2.eslite.com/unsafe/fit-in/x768/filters:format(webp)/s.eslite.com/b2b/newItem/2025/01/20/338_142757861_572_mainCoverImage1.jpg",
+                "target": "關注中醫養生、想順應生理時鐘作息的人",
+                "description": "◎中醫強調順時養生。中午11點過後用餐午睡，下午3點精力就充沛。\n◎上班時很健康，退休在家享清福反而開始百病叢生？跟體內生物時鐘改變有關。\n◎心血管疾病在清晨發病率最高，氣喘常在夜間加重，都是因身體的時間節律。\n◎不吃早餐就能減肥，是迷思。早上7點到9點，若不吸收好能量，會加速衰老。",
+                "takeaways": [
+                    "1. 認識人體十二經絡運行",
+                    "2. 配合時辰調整飲食作息",
+                    "3. 預防亞健康與慢性疲勞"
+                ]
+            },
+            {
+                "id": "ESLITE_030",
+                "category": "健康生活",
+                "title": "林姓主婦的晚餐餐桌提案",
+                "rating": 4.4,
+                "reviews": 2141,
+                "cover": "https://s2.eslite.com/unsafe/fit-in/x768/filters:format(webp)/s.eslite.com/b2b/vendor/vendor173640651497620250109150840/mainCoverImage1_1379860.jpg",
+                "target": "每天為晚餐煩惱、追求快速上菜的家庭煮婦/夫",
+                "description": "與家人共享幸福時光的家庭餐桌提案，\n為孩子打造專屬的美味回憶！\n\n一天三十分鐘的晚餐時光，說起來微不足道，\n卻能編織出一段好細好長的溫柔回憶，把一家人串在一起，療癒彼此。\n\n\n而你，是否想為家人料理，卻沒時間、或苦無方法？\n書中已搭配好32套「四菜一湯」餐桌，\n是數年來兩個兒子吃過還想再吃、指定收錄的最愛菜色！\n\n若對料理不嫻熟，也別給自己太大壓力（摟～）\n只要有空時，挑簡單的料理下手，輕鬆看待、量力而為，\n相信孩子仍會感受到父母這份心意，在餐桌被愛滋養著。\n讓我們一起，多陪孩子在家吃飯吧！",
+                "takeaways": [
+                    "1. 學會食材的聰明採買與備料",
+                    "2. 掌握快速出餐的廚房動線",
+                    "3. 豐富家庭餐桌的菜色變化"
+                ]
+            },
+            {
+                "id": "ESLITE_031",
+                "category": "休閒趣味",
+                "title": "吉伊卡哇: 這又小又可愛的傢伙6",
+                "rating": 4.8,
+                "reviews": 219,
+                "cover": "https://s2.eslite.com/unsafe/fit-in/x768/filters:format(webp)/s.eslite.com/b2b/newItem/2024/11/27/8113_164529534_835_mainCoverImage1.jpg",
+                "target": "需要療癒感、喜歡可愛IP角色的上班族與學生",
+                "description": "本集封面主角：風獅爺！\n\n又小又可愛的傢伙＝就是「吉伊卡哇」！\n兔兔去旅行，送給大家的伴手禮是很漂亮的石頭。\n看著石頭，莫名地好想去某個地方……\n吉伊卡哇和小八貓，追著兔兔的行蹤來到了古老的旅館。\n在旅館的「拾魔」中找到了兔兔，總算鬆了一口氣…\n沒想到，大家的樣子因為石頭而變得好奇怪！\n吉伊卡哇們遇上大危機！",
+                "takeaways": [
+                    "1. 被軟萌角色徹底療癒",
+                    "2. 在笑聲中釋放生活壓力",
+                    "3. 感受單純友情的溫暖"
+                ]
+            },
+            {
+                "id": "ESLITE_032",
+                "category": "休閒趣味",
+                "title": "我的英雄學院42 (完)",
+                "rating": 4.2,
+                "reviews": 1996,
+                "cover": "https://s2.eslite.com/unsafe/fit-in/x768/filters:format(webp)/s.eslite.com/b2b/newItem/2025/05/22/469_141810796_357_mainCoverImage1.jpg",
+                "target": "熱血動漫迷、一路追隨綠谷出久成長的粉絲",
+                "description": "那一天，得到崇拜的人認同，讓我好高興。\n也認識到一些無可取代的同伴，\n實在難以置信，本來「無個性」的我，\n在許多人的支持下，現在才能站在這裡。\n所以我也想向 lift 出援手。\n虛構將成為現實。同時也是將現在維繫到未來的故事。\n這裡就是我的……我們的英雄學院！",
+                "takeaways": [
+                    "1. 見證英雄們的最終成長",
+                    "2. 感受燃燒殆盡的熱血戰鬥",
+                    "3. 體會傳承與希望的意義"
+                ]
+            },
+            {
+                "id": "ESLITE_033",
+                "category": "休閒趣味",
+                "title": "寶可夢伽勒爾圖鑑",
+                "rating": 4.7,
+                "reviews": 1158,
+                "cover": "https://s2.eslite.com/unsafe/fit-in/x768/filters:format(webp)/s.eslite.com/b2b/newItem/2025/01/06/248_132222668_872_mainCoverImage1.jpg",
+                "target": "寶可夢玩家、喜歡收集圖鑑與角色設定的人",
+                "description": "伽勒爾地區所有的新寶可夢以及\n地區型態（伽勒爾的樣子）\n在此一口氣介紹到底！\n\n還有超極巨化的樣子\n也都有收錄喔！\n\n更包括電視與\n電影版的所有祕密！",
+                "takeaways": [
+                    "1. 全面了解伽勒爾寶可夢",
+                    "2. 欣賞精美的官方設定圖",
+                    "3. 滿足收集與探索的樂趣"
+                ]
+            },
+            {
+                "id": "ESLITE_034",
+                "category": "休閒趣味",
+                "title": "16647 1",
+                "rating": 4.3,
+                "reviews": 1935,
+                "cover": "https://cdn.readmoo.com/cover/jg/nfbirmb_460x580.jpg?v=1739328269",
+                "target": "喜歡解謎、密室逃脫與懸疑科幻小說的讀者",
+                "description": "台漫現象級耽美BL神作，終於正式出版！\n\n奪命詐欺殺人魔 × 生無可戀高中生\n這場越玩越愛的遊戲，你願意付出生命嗎？",
+                "takeaways": [
+                    "1. 跟隨主角解開層層謎團",
+                    "2. 體驗腎上腺素飆升的快感",
+                    "3. 考驗邏輯推理與觀察力"
+                ]
+            },
+            {
+                "id": "ESLITE_035",
+                "category": "休閒趣味",
+                "title": "名偵探柯南104 (特別版)",
+                "rating": 4.2,
+                "reviews": 1880,
+                "cover": "https://s2.eslite.com/unsafe/fit-in/x768/filters:format(webp)/s.eslite.com/b2b/newItem/2024/11/07/248_114600777_498_mainCoverImage1.jpg",
+                "target": "柯南死忠粉絲、熱愛推理與案件分析的讀者",
+                "description": "天才棋士「羽田浩司」離奇死亡。\n沉睡在這起事件底下的真相究竟為何？\n經過了17年歲月，如今即將甦醒──",
+                "takeaways": [
+                    "1. 享受原汁原味的推理樂趣",
+                    "2. 回顧經典角色的精彩對決",
+                    "3. 跟隨柯南尋找唯一真相"
+                ]
+            },
+            {
+                "id": "ESLITE_036",
+                "category": "自然科普",
+                "title": "數學公式圖鑑: 利用圖像思考, 提升理解效率!",
+                "rating": 4.5,
+                "reviews": 931,
+                "cover": "https://s2.eslite.com/unsafe/fit-in/x768/filters:format(webp)/s.eslite.com/b2b/newItem/2025/01/15/9033_103910415_655_mainCoverImage1.jpg",
+                "target": "數學苦手、想用視覺化方式理解理科的學生",
+                "description": "數學公式不必再死背！\n\n● 面對數學課本，覺得眼花撩亂？\n● 看到考卷，腦中一片空白？\n● 題目經過變化，不曉得該用哪個公式？\n\n如果你有上述症狀，是時候根除病因了，阿基頓敦的《數學公式圖鑑》能為你打好基礎，從觀念重新認識數學。",
+                "takeaways": [
+                    "1. 突破死背公式的盲點",
+                    "2. 建立直觀的數學空間感",
+                    "3. 提升理科學習效率"
+                ]
+            },
+            {
+                "id": "ESLITE_037",
+                "category": "自然科普",
+                "title": "我們為何會做夢: 睡夢中的大腦如何激發創造力",
+                "rating": 4.7,
+                "reviews": 449,
+                "cover": "https://s2.eslite.com/unsafe/fit-in/x768/filters:format(webp)/s.eslite.com/b2b/newItem/2024/10/22/8622_120148912_345_mainCoverImage1.jpg",
+                "target": "對夢境解析、睡眠科學與潛意識好奇的人",
+                "description": "第一本關於做夢的腦科學！\n\n做夢，是人類演化⽽來的優勢",
+                "takeaways": [
+                    "1. 理解不同睡眠階段的作用",
+                    "2. 學會利用夢境提升創造力",
+                    "3. 改善睡眠品質以強化記憶"
+                ]
+            },
+            {
+                "id": "ESLITE_038",
+                "category": "自然科普",
+                "title": "命定: 沒有自由意志的科學",
+                "rating": 4.9,
+                "reviews": 913,
+                "cover": "https://s2.eslite.com/unsafe/fit-in/x768/filters:format(webp)/s.eslite.com/b2b/vendor/vendor173198632824020241119111850/mainCoverImage1_1353707.jpg",
+                "target": "對哲學、神經科學與自由意志辯論感興趣的人",
+                "description": "薩波斯基也對歷史上人們如何對於思覺失調症患者、\n癲癇患者、自閉症、異己者、犯罪者施予懲罰進行了耙梳，\n證明人們對於精神疾病和行惡者者越來越瞭解，我們就會變得更具同理心和人道，\n加上不存在自由意志的最後一擊，\n我們會發現「所謂報應式的懲罰，是徒勞而錯誤的做法」，\n從而改變我們的社會和法律框架，比起懲罰更重視矯正。",
+                "takeaways": [
+                    "1. 顛覆對自由意志的傳統認知",
+                    "2. 理解大腦決策的物理機制",
+                    "3. 反思道德責任與宿命論"
+                ]
+            },
+            {
+                "id": "ESLITE_039",
+                "category": "自然科普",
+                "title": "名偵探柯南: 空想科學讀本",
+                "rating": 4.4,
+                "reviews": 1286,
+                "cover": "https://s2.eslite.com/unsafe/fit-in/x768/filters:format(webp)/s.eslite.com/b2b/vendor/vendor175758314377720250911173225/mainCoverImage1_1518875.jpg",
+                "target": "柯南迷、喜歡用科學角度吐槽動漫情節的讀者",
+                "description": "這是第一本開心討論柯南漫畫中的「科學」的書。專門踢館（不，是致敬）動漫作品的柳田理科雄老師，開心挑戰柯南的故事與角色設定！身為資深科學推廣者的柳田老師，以科學嚴謹的方式，深入探討圍繞《名偵探柯南》人物的種種疑點，包括新一從高中生變小學生的運作原理、柯南遭遇死亡事件的頻率，甚至是那個讓cosplay大卡關的小蘭髮型……一貫的爆笑科學人思路，絕對要引發出你的理性邏輯魂和空想科學精神。",
+                "takeaways": [
+                    "1. 在爆笑中學習物理知識",
+                    "2. 培養科學求證的實驗精神",
+                    "3. 用全新視角重看經典動漫"
+                ]
+            },
+            {
+                "id": "ESLITE_040",
+                "category": "自然科普",
+                "title": "在異星的天空下",
+                "rating": 4.4,
+                "reviews": 2330,
+                "cover": "https://s2.eslite.com/unsafe/fit-in/x768/filters:format(webp)/s.eslite.com/b2b/newItem/2025/02/24/8112_181111151_258_mainCoverImage1.jpg",
+                "target": "科幻小說迷、對外星文明與宇宙探索充滿憧憬的人",
+                "description": "「這是為未來太空旅客準備的生動導覽指南！」\n十個遙遠異域的天體，十片壯闊奇異的天空\n跟著天文學家踏上一趟遨遊銀河之旅，用前所未有的視點體會宇宙的奧妙風光",
+                "takeaways": [
+                    "1. 擴展對浩瀚宇宙的想像力",
+                    "2. 反思人類在宇宙中的定位",
+                    "3. 體驗身歷其境的異星探險"
+                ]
+            }
+        ];
+        
+        const SAVED_DATA_KEY = 'eslite_comments_db_v5';
+        let commentsDB = {};
+        let currentBookId = null;
+
+        // 初始化或讀取評論庫
+        function initCommentsDB() {
+            const savedData = localStorage.getItem(SAVED_DATA_KEY);
+            if (savedData) {
+                commentsDB = JSON.parse(savedData);
+            } else {
+                books.forEach((book, index) => {
+                    const templates = [
+                        { user: "書蟲日常", text: `這本《${book.title}》寫得太好了，強烈推薦！`, rating: 5, time: "1天前" },
+                        { user: "週末閱讀者", text: "排版很舒服，內容也不錯，值得一看。", rating: 4, time: "2天前" },
+                        { user: "學習狂人", text: "乾貨滿滿，解決了我的痛點！", rating: 5, time: "3天前" },
+                        { user: "路過的打工人", text: "買來充電用的，還行吧，挺有啟發的。", rating: 4, time: "1週前" },
+                        { user: "文藝青年", text: "文字很優美，看完心裡很平靜。", rating: 5, time: "剛才" }
+                    ];
+                    
+                    let initialComments = [];
+                    initialComments.push(templates[index % templates.length]);
+                    if (index % 2 === 0) {
+                        initialComments.push(templates[(index + 1) % templates.length]);
+                    }
+                    if (index % 3 === 0) {
+                        initialComments.push(templates[(index + 2) % templates.length]);
+                    }
+                    commentsDB[book.id] = initialComments;
+                });
+                saveComments();
+            }
+        }
+
+        function saveComments() {
+            localStorage.setItem(SAVED_DATA_KEY, JSON.stringify(commentsDB));
+        }
+
+        // 新增功能：計算書籍實際平均分
+        function getAverageRating(bookId) {
+            const comments = commentsDB[bookId] || [];
+            if (comments.length === 0) {
+                // 如果一條評論都沒有，回退顯示原本資料庫的評分
+                const book = books.find(b => b.id === bookId);
+                return book ? book.rating.toFixed(1) : "0.0";
+            }
+            const sum = comments.reduce((acc, curr) => acc + curr.rating, 0);
+            return (sum / comments.length).toFixed(1); // 取小數點後一位
+        }
+
+        const renderStars = (rating) => {
+            return '⭐'.repeat(Math.round(rating)); // 視覺上會四捨五入星星數量
+        };
+
+        const grid = document.getElementById('book-grid');
+
+        // 渲染圖書列表
+        function renderBooks() {
+            initCommentsDB();
+            grid.innerHTML = '';
+            
+            books.forEach(book => {
+                const card = document.createElement('div');
+                card.className = "bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition flex flex-col";
+                
+                let takeawaysHtml = book.takeaways.map(t => `<li>✓ ${t.replace(/^\d+\.\s*/, '')}</li>`).join('');
+
+                // 獲取當前真實的評論數與平均評分
+                let localCommentCount = commentsDB[book.id] ? commentsDB[book.id].length : 0;
+                let totalReviews = localCommentCount;
+                let avgRating = getAverageRating(book.id); 
+
+                card.innerHTML = `
+                    <img src="${book.cover}" alt="${book.title}" class="w-full h-64 object-cover">
+                    <div class="p-5 flex-grow flex flex-col">
+                        <span class="text-xs font-bold text-gray-500 uppercase mb-1">${book.category}</span>
+                        <h2 class="text-lg font-bold mb-2 leading-tight">${book.title}</h2>
+                        
+                        <div class="flex items-center text-sm mb-4">
+                            <!-- 加上 ID 方便發布評論後抓取並更新 -->
+                            <span class="text-yellow-500 mr-1" id="star-rating-${book.id}">${renderStars(avgRating)}</span>
+                            <span class="font-bold mr-2" id="num-rating-${book.id}">${avgRating}</span>
+                            <span class="text-gray-400" id="review-count-${book.id}">(${totalReviews} 則評論)</span>
+                        </div>
+
+                        <div class="mb-3 cursor-pointer group" onclick="openModal('${book.id}')" title="點擊查看完整簡介">
+                            <!-- 將背景與文字顏色改為灰色 -->
+                            <span class="text-xs font-bold bg-gray-200 text-gray-700 px-2 py-1 rounded">內容簡介</span>
+                            <p class="text-sm mt-1 text-gray-600 line-clamp-3 whitespace-pre-line group-hover:text-blue-600 transition">${book.description}</p>
+                            <span class="text-blue-600 text-xs mt-1 inline-block hover:underline">閱讀完整簡介 ↗</span>
+                        </div>
+
+                        <div class="mb-3">
+                            <!-- 將背景與文字顏色改為灰色 -->
+                            <span class="text-xs font-bold bg-gray-200 text-gray-700 px-2 py-1 rounded">適合誰看</span>
+                            <p class="text-sm mt-1 text-gray-700">${book.target}</p>
+                        </div>
+
+                        <div class="mb-4 flex-grow">
+                            <!-- 將背景與文字顏色改為灰色 -->
+                            <span class="text-xs font-bold bg-gray-200 text-gray-700 px-2 py-1 rounded">核心收穫</span>
+                            <ul class="text-sm mt-1 text-gray-700 list-none space-y-1">
+                                ${takeawaysHtml}
+                            </ul>
+                        </div>
+
+                        <button onclick="openModal('${book.id}')" class="w-full mt-auto bg-gray-900 text-white py-2 rounded-lg hover:bg-gray-700 transition">
+                            查看完整簡介與書評
+                        </button>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // 打開評論彈窗
+        window.openModal = function(bookId) {
+            currentBookId = bookId;
+            const book = books.find(b => b.id === bookId);
+            document.getElementById('modal-title').innerText = `《${book.title}》`;
+            
+            // 渲染書籍完整簡介
+            const detailsDiv = document.getElementById('modal-book-details');
+            detailsDiv.innerHTML = `
+                <div class="flex flex-col md:flex-row gap-5">
+                    <img src="${book.cover}" alt="${book.title}" class="w-24 h-36 object-cover rounded shadow-md hidden md:block">
+                    <div class="flex-grow">
+                        <h4 class="font-bold text-gray-700 mb-2 flex items-center"><span class="mr-2">📖</span> 完整內容簡介</h4>
+                        <p class="text-sm text-gray-700 whitespace-pre-line mb-4 leading-relaxed">${book.description}</p>
+                        <h4 class="font-bold text-gray-700 mb-2 flex items-center"><span class="mr-2">👤</span> 適合誰看</h4>
+                        <p class="text-sm text-gray-700">${book.target}</p>
+                    </div>
+                </div>
+            `;
+            
+            renderComments();
+            document.getElementById('comment-modal').classList.remove('hidden');
+        }
+
+        // 關閉評論彈窗
+        window.closeModal = function() {
+            document.getElementById('comment-modal').classList.add('hidden');
+            document.getElementById('new-comment-text').value = ''; 
+            currentBookId = null;
+        }
+
+        // 展開/收起簡介功能
+        window.toggleDesc = function(bookId) {
+            const descP = document.getElementById(`desc-${bookId}`);
+            const btn = document.getElementById(`btn-desc-${bookId}`);
+            if (descP.classList.contains('line-clamp-3')) {
+                descP.classList.remove('line-clamp-3');
+                btn.innerText = '收起 ▲';
+            } else {
+                descP.classList.add('line-clamp-3');
+                btn.innerText = '展開全部 ▼';
+            }
+        }
+
+        // 渲染彈窗內的評論列表
+        function renderComments() {
+            const listDiv = document.getElementById('modal-comments-list');
+            const comments = commentsDB[currentBookId] || [];
+            
+            if (comments.length === 0) {
+                listDiv.innerHTML = '<p class="text-gray-500 text-center py-8">目前還沒有評論，來搶頭香吧！</p>';
+                return;
+            }
+
+            let html = '';
+            // 反轉陣列讓新評論在最上面
+            [...comments].reverse().forEach(c => {
+                html += `
+                    <div class="border-b border-gray-100 pb-4 mb-4 last:border-0 last:mb-0 last:pb-0">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="font-bold text-sm text-gray-800">👤 ${c.user}</span>
+                            <span class="text-xs text-gray-400">${c.time}</span>
+                        </div>
+                        <div class="text-yellow-500 text-xs mb-2">${renderStars(c.rating)}</div>
+                        <p class="text-gray-700 text-sm whitespace-pre-wrap">${c.text}</p>
+                    </div>
+                `;
+            });
+            
+            listDiv.innerHTML = html;
+        }
+
+        // 提交新評論
+        window.submitComment = function() {
+            const textInput = document.getElementById('new-comment-text');
+            const ratingInput = document.getElementById('new-comment-rating');
+            const text = textInput.value.trim();
+            
+            if (!text) {
+                alert('請先輸入評論內容喔！');
+                return;
+            }
+
+            if (!commentsDB[currentBookId]) {
+                commentsDB[currentBookId] = [];
+            }
+
+            // 將新評論加入並保存到 LocalStorage
+            commentsDB[currentBookId].push({
+                user: "網站客人 (你)",
+                rating: parseInt(ratingInput.value),
+                text: text,
+                time: "剛剛"
+            });
+            
+            saveComments(); 
+
+            textInput.value = '';
+            renderComments();
+
+            // 更新外面卡片的評論數字與平均分數
+            const countSpan = document.getElementById(`review-count-${currentBookId}`);
+            let totalReviews = commentsDB[currentBookId].length;
+            countSpan.innerText = `(${totalReviews} 則評論)`;
+            countSpan.classList.add('text-green-600', 'font-bold');
+            
+            // 重新計算並更新星級與分數
+            let newAvg = getAverageRating(currentBookId);
+            const starSpan = document.getElementById(`star-rating-${currentBookId}`);
+            const numSpan = document.getElementById(`num-rating-${currentBookId}`);
+            
+            starSpan.innerText = renderStars(newAvg);
+            numSpan.innerText = newAvg;
+            numSpan.classList.add('text-green-600');
+
+            // 2 秒後移除綠色高亮效果
+            setTimeout(() => {
+                countSpan.classList.remove('text-green-600', 'font-bold');
+                numSpan.classList.remove('text-green-600');
+            }, 2000);
+        }
+
+        // 初始渲染
+        renderBooks();
+
+    </script>
+</body>
+</html>

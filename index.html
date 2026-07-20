@@ -634,7 +634,7 @@
                 "deepReview": "在雙薪家庭的高壓夾擊下，準備晚餐往往淪為令人崩潰的例行公事。這本書不僅提供了實用的快速出餐模組，更重要的是它傳遞了一種放過自己的鬆弛感。它告訴我們，餐桌的核心價值不在於菜色的奢華或完美，而在於那份專屬於家庭的煙火氣與情感交流。這是一部能夠有效緩解當代主婦焦慮的溫柔之作。作者林姓主婦深諳現代雙薪家庭在下班後的「時間貧困」窘境。她不賣弄繁複的刀工或稀有的食材，而是將廚房視為一個需要高度統籌管理的專案現場。書中精心設計的32套「四菜一湯」提案，其核心價值在於「常備菜的延伸運用」與「烹調時序的精密計算」。她教導讀者如何利用週末進行半成品備料，以及如何巧妙搭配烤箱、電鍋與瓦斯爐，達到多工處理的極致效率。但這本書更深層的意義在於它對「母職/妻職壓力」的溫柔解構。它告訴讀者，偶爾使用現成的醬料、或是端出不那麼完美的家常菜，並不會折損對家人的愛。相反地，只有當掌廚者不再被廚房的油煙與焦慮所綁架，能夠心平氣和地坐下來與家人共進晚餐時，這頓飯才真正具有了凝聚家庭的靈魂。這是一本兼具實戰價值與心理療癒的廚房生存指南。",
                 "quotes": [
                     "「餐桌上熱騰騰的煙火氣，是抵禦外界世俗煩擾最好、也最堅固的結界。那不僅僅是為了填飽肚子的三菜一湯，更是編織一個家庭專屬記憶的神聖儀式。」",
-                    "「放下對『完美大餐』的執念吧。孩子們長大後懷念的往往不是多麼繁複的名貴料理，而是媽媽在忙碌了一天後，依然願意為他們快速端上桌的那份心意。」"
+                    "「放下對『完美大餐』的執念吧。孩子們長大後懷念的，往往不是多麼繁複的名貴料理，而是媽媽在忙碌了一天後，依然願意為他們快速端上桌的那份心意。」"
                 ]
             },
             {
@@ -832,11 +832,7 @@
         const SAVED_DATA_KEY = 'eslite_comments_db_v5';
         let commentsDB = {};
         let currentBookId = null;
-        let isAudioPlaying = false; 
-
-        // 全域變數來儲存目前的 Audio 物件，用於外部 API 播放
-        let currentAudio = null;
-        let currentPlayingBookId = null;
+        let isAudioPlaying = false; // 新增語音播放狀態追蹤
 
         // 初始化或讀取評論庫
         function initCommentsDB() {
@@ -945,89 +941,59 @@
             });
         }
 
-        // 播放語音功能 (已改為呼叫後端 API 播放音檔)
-        window.toggleAudio = async function(bookId) {
+        // 播放語音功能
+        window.toggleAudio = function(bookId) {
+            const book = books.find(b => b.id === bookId);
+            const synth = window.speechSynthesis;
             const btnText = document.getElementById('audio-btn-text');
 
-            // 如果點擊的是正在播放的書，則停止播放
-            if (isAudioPlaying && currentPlayingBookId === bookId) {
-                if (currentAudio) {
-                    currentAudio.pause();
-                    currentAudio.currentTime = 0;
-                }
+            // 如果正在播放，則停止
+            if (isAudioPlaying) {
+                synth.cancel();
                 isAudioPlaying = false;
-                currentPlayingBookId = null;
                 if(btnText) btnText.innerText = '🔊 聽取導讀與精華';
                 return;
             }
 
-            // 如果正在播放其他的書，先停止
-            if (currentAudio) {
-                currentAudio.pause();
-                currentAudio.currentTime = 0;
-            }
+            // 確保清除先前的佇列
+            synth.cancel();
 
-            const book = books.find(b => b.id === bookId);
-            
             // 組合要朗讀的文字內容
-            let textToRead = `書名：${book.title}。內容簡介：${book.description}。核心收穫：`;
-            book.takeaways.forEach(t => { textToRead += `${t.replace(/^\d+\.\s*/, '')}。`; });
-            if (book.deepReview) textToRead += `深度書評：${book.deepReview}。`;
+            let textToRead = `書名：${book.title}。`;
+            textToRead += `內容簡介：${book.description}。`;
+            textToRead += `核心收穫：`;
+            book.takeaways.forEach(t => {
+                textToRead += `${t.replace(/^\d+\.\s*/, '')}。`;
+            });
+            if (book.deepReview) {
+                textToRead += `深度書評：${book.deepReview}。`;
+            }
             if (book.quotes && book.quotes.length > 0) {
                 textToRead += `書中金句：`;
-                book.quotes.forEach(q => { textToRead += `${q}。`; });
-            }
-
-            try {
-                if(btnText) btnText.innerText = '⏳ 語音生成中...';
-                
-                // 呼叫你自己架設的後端 API (這裡以 /api/tts 為例)
-                // 註：這段 fetch 為預留的架構，本地直接執行如果沒有對應的後端會報錯，但架構設計上是完整的。
-                const response = await fetch('/api/tts', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        text: textToRead,
-                        bookId: bookId, 
-                        voice: 'zh-HK-HiuMaanNeural' // 指定粵語真人語音
-                    })
+                book.quotes.forEach(q => {
+                    textToRead += `${q}。`;
                 });
-
-                if (!response.ok) throw new Error('語音生成失敗');
-
-                const data = await response.json();
-                const audioUrl = data.audioUrl; 
-
-                // 播放音檔
-                currentAudio = new Audio(audioUrl);
-                
-                currentAudio.onplay = () => {
-                    isAudioPlaying = true;
-                    currentPlayingBookId = bookId;
-                    if(btnText) btnText.innerText = '⏹️ 停止語音導讀';
-                };
-
-                currentAudio.onended = () => {
-                    isAudioPlaying = false;
-                    currentPlayingBookId = null;
-                    if(btnText) btnText.innerText = '🔊 聽取導讀與精華';
-                };
-
-                currentAudio.onerror = () => {
-                    throw new Error('音檔播放失敗');
-                };
-
-                await currentAudio.play();
-
-            } catch (error) {
-                console.error('語音處理錯誤:', error);
-                alert('目前無法播放語音，請稍後檢查網路或後端連線。');
-                isAudioPlaying = false;
-                currentPlayingBookId = null;
-                if(btnText) btnText.innerText = '🔊 聽取導讀與精華';
             }
+
+            const utterance = new SpeechSynthesisUtterance(textToRead);
+            utterance.lang = 'zh-HK'; // 粵語發音
+            utterance.rate = 1.0; 
+
+            // 播放結束時恢復按鈕狀態
+            utterance.onend = function() {
+                isAudioPlaying = false;
+                if(btnText) btnText.innerText = '🔊 聽取導讀與精華';
+            };
+
+            // 發生錯誤時恢復按鈕狀態
+            utterance.onerror = function() {
+                isAudioPlaying = false;
+                if(btnText) btnText.innerText = '🔊 聽取導讀與精華';
+            };
+
+            synth.speak(utterance);
+            isAudioPlaying = true;
+            if(btnText) btnText.innerText = '⏹️ 停止語音導讀';
         }
 
         // 打開評論彈窗
@@ -1087,12 +1053,8 @@
         // 關閉評論彈窗
         window.closeModal = function() {
             // 關閉彈窗時強制停止語音
-            if (currentAudio) {
-                currentAudio.pause();
-                currentAudio.currentTime = 0;
-            }
+            window.speechSynthesis.cancel();
             isAudioPlaying = false;
-            currentPlayingBookId = null;
 
             document.getElementById('comment-modal').classList.add('hidden');
             document.getElementById('new-comment-text').value = ''; 

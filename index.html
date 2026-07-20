@@ -9,7 +9,7 @@
 <body class="bg-gray-50 text-gray-800 font-sans p-8">
 
     <div class="max-w-7xl mx-auto">
-        <h1 class="text-3xl font-bold mb-8 text-center text-gray-900">📚 2025 誠品、三聯(香港)及商務印書館暢銷書單</h1>
+        <h1 class="text-3xl font-bold mb-8 text-center text-gray-900">📚 2025 誠品、三聯(香港)及商務印書館暢銷書單 Top 40</h1>
         
         <div id="book-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <!-- 圖書卡片將在這裡生成 -->
@@ -792,6 +792,7 @@
         const SAVED_DATA_KEY = 'eslite_comments_db_v5';
         let commentsDB = {};
         let currentBookId = null;
+        let isAudioPlaying = false; // 新增語音播放狀態追蹤
 
         // 初始化或讀取評論庫
         function initCommentsDB() {
@@ -826,20 +827,19 @@
             localStorage.setItem(SAVED_DATA_KEY, JSON.stringify(commentsDB));
         }
 
-        // 新增功能：計算書籍實際平均分
+        // 獲取平均分
         function getAverageRating(bookId) {
             const comments = commentsDB[bookId] || [];
             if (comments.length === 0) {
-                // 如果一條評論都沒有，回退顯示原本資料庫的評分
                 const book = books.find(b => b.id === bookId);
                 return book ? book.rating.toFixed(1) : "0.0";
             }
             const sum = comments.reduce((acc, curr) => acc + curr.rating, 0);
-            return (sum / comments.length).toFixed(1); // 取小數點後一位
+            return (sum / comments.length).toFixed(1);
         }
 
         const renderStars = (rating) => {
-            return '⭐'.repeat(Math.round(rating)); // 視覺上會四捨五入星星數量
+            return '⭐'.repeat(Math.round(rating)); 
         };
 
         const grid = document.getElementById('book-grid');
@@ -855,12 +855,10 @@
                 
                 let takeawaysHtml = book.takeaways.map(t => `<li class="pl-4 -indent-4"><span class="text-blue-500 font-bold mr-1">✓</span> ${t.replace(/^\d+\.\s*/, '')}</li>`).join('');
 
-                // 獲取當前真實的評論數與平均評分
                 let localCommentCount = commentsDB[book.id] ? commentsDB[book.id].length : 0;
                 let totalReviews = localCommentCount;
                 let avgRating = getAverageRating(book.id); 
 
-                // 抓取第一句金句展示在卡片上
                 let shortQuote = book.quotes && book.quotes.length > 0 ? book.quotes[0] : "";
 
                 card.innerHTML = `
@@ -870,13 +868,11 @@
                         <h2 class="text-lg font-bold mb-2 leading-tight">${book.title}</h2>
                         
                         <div class="flex items-center text-sm mb-4">
-                            <!-- 加上 ID 方便發布評論後抓取並更新 -->
                             <span class="text-yellow-500 mr-1" id="star-rating-${book.id}">${renderStars(avgRating)}</span>
                             <span class="font-bold mr-2" id="num-rating-${book.id}">${avgRating}</span>
                             <span class="text-gray-400" id="review-count-${book.id}">(${totalReviews} 則評論)</span>
                         </div>
 
-                        <!-- 新增：書中金句 (卡片預覽版) -->
                         <div class="mb-4">
                             <blockquote class="border-l-4 border-amber-400 bg-amber-50/70 px-3 py-2 text-sm text-gray-700 font-serif italic relative rounded-r">
                                 <span class="text-amber-500 font-bold mr-1">💬</span>${shortQuote}
@@ -905,13 +901,64 @@
             });
         }
 
+        // 播放語音功能
+        window.toggleAudio = function(bookId) {
+            const book = books.find(b => b.id === bookId);
+            const synth = window.speechSynthesis;
+            const btnText = document.getElementById('audio-btn-text');
+
+            // 如果正在播放，則停止
+            if (isAudioPlaying) {
+                synth.cancel();
+                isAudioPlaying = false;
+                if(btnText) btnText.innerText = '🔊 聽取導讀與精華';
+                return;
+            }
+
+            // 確保清除先前的佇列
+            synth.cancel();
+
+            // 組合要朗讀的文字內容
+            let textToRead = `書名：${book.title}。`;
+            textToRead += `內容簡介：${book.description}。`;
+            textToRead += `核心收穫：`;
+            book.takeaways.forEach(t => {
+                textToRead += `${t.replace(/^\d+\.\s*/, '')}。`;
+            });
+            if (book.quotes && book.quotes.length > 0) {
+                textToRead += `書中金句：`;
+                book.quotes.forEach(q => {
+                    textToRead += `${q}。`;
+                });
+            }
+
+            const utterance = new SpeechSynthesisUtterance(textToRead);
+            utterance.lang = 'zh-TW'; 
+            utterance.rate = 1.0; 
+
+            // 播放結束時恢復按鈕狀態
+            utterance.onend = function() {
+                isAudioPlaying = false;
+                if(btnText) btnText.innerText = '🔊 聽取導讀與精華';
+            };
+
+            // 發生錯誤時恢復按鈕狀態
+            utterance.onerror = function() {
+                isAudioPlaying = false;
+                if(btnText) btnText.innerText = '🔊 聽取導讀與精華';
+            };
+
+            synth.speak(utterance);
+            isAudioPlaying = true;
+            if(btnText) btnText.innerText = '⏹️ 停止語音導讀';
+        }
+
         // 打開評論彈窗
         window.openModal = function(bookId) {
             currentBookId = bookId;
             const book = books.find(b => b.id === bookId);
             document.getElementById('modal-title').innerText = `《${book.title}》`;
             
-            // 處理完整金句的 HTML
             let fullQuotesHtml = '';
             if (book.quotes && book.quotes.length > 0) {
                 const quotesList = book.quotes.map(q => `<p class="mb-3 italic text-gray-800 leading-relaxed font-serif text-[15px]">${q}</p>`).join('');
@@ -923,17 +970,21 @@
                 `;
             }
 
-            // 渲染書籍完整簡介
             const detailsDiv = document.getElementById('modal-book-details');
             detailsDiv.innerHTML = `
-                <div class="flex flex-col md:flex-row gap-5">
+                <div class="flex flex-col md:flex-row gap-5 relative">
                     <img src="${book.cover}" alt="${book.title}" class="w-24 h-36 object-cover rounded shadow-md hidden md:block">
                     <div class="flex-grow">
                         <h4 class="font-bold text-gray-700 mb-2 flex items-center"><span class="mr-2">📖</span> 完整內容簡介</h4>
                         <p class="text-sm text-gray-700 whitespace-pre-line mb-4 leading-relaxed">${book.description}</p>
                         
                         <h4 class="font-bold text-gray-700 mb-2 flex items-center"><span class="mr-2">👤</span> 適合誰看</h4>
-                        <p class="text-sm text-gray-700 mb-2">${book.target}</p>
+                        <p class="text-sm text-gray-700 mb-4">${book.target}</p>
+
+                        <!-- 新增語音導讀按鈕 -->
+                        <button id="audio-btn" onclick="toggleAudio('${book.id}')" class="flex items-center justify-center bg-blue-100 text-blue-700 px-4 py-2 rounded-lg font-bold hover:bg-blue-200 transition shadow-sm w-full md:w-auto">
+                            <span id="audio-btn-text">🔊 聽取導讀與精華</span>
+                        </button>
                     </div>
                 </div>
                 ${fullQuotesHtml}
@@ -945,6 +996,10 @@
 
         // 關閉評論彈窗
         window.closeModal = function() {
+            // 關閉彈窗時強制停止語音
+            window.speechSynthesis.cancel();
+            isAudioPlaying = false;
+
             document.getElementById('comment-modal').classList.add('hidden');
             document.getElementById('new-comment-text').value = ''; 
             currentBookId = null;
@@ -974,7 +1029,6 @@
             }
 
             let html = '';
-            // 反轉陣列讓新評論在最上面
             [...comments].reverse().forEach(c => {
                 html += `
                     <div class="border-b border-gray-100 pb-4 mb-4 last:border-0 last:mb-0 last:pb-0">
@@ -1006,7 +1060,6 @@
                 commentsDB[currentBookId] = [];
             }
 
-            // 將新評論加入並保存到 LocalStorage
             commentsDB[currentBookId].push({
                 user: "網站客人 (你)",
                 rating: parseInt(ratingInput.value),
@@ -1019,13 +1072,11 @@
             textInput.value = '';
             renderComments();
 
-            // 更新外面卡片的評論數字與平均分數
             const countSpan = document.getElementById(`review-count-${currentBookId}`);
             let totalReviews = commentsDB[currentBookId].length;
             countSpan.innerText = `(${totalReviews} 則評論)`;
             countSpan.classList.add('text-green-600', 'font-bold');
             
-            // 重新計算並更新星級與分數
             let newAvg = getAverageRating(currentBookId);
             const starSpan = document.getElementById(`star-rating-${currentBookId}`);
             const numSpan = document.getElementById(`num-rating-${currentBookId}`);
@@ -1034,7 +1085,6 @@
             numSpan.innerText = newAvg;
             numSpan.classList.add('text-green-600');
 
-            // 2 秒後移除綠色高亮效果
             setTimeout(() => {
                 countSpan.classList.remove('text-green-600', 'font-bold');
                 numSpan.classList.remove('text-green-600');
@@ -1043,6 +1093,10 @@
 
         // 初始渲染
         renderBooks();
+
+    </script>
+</body>
+</html>
 
     </script>
 </body>
